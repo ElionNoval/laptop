@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helix 16 — Built to disappear</title>
+<meta name="theme-color" content="#f1f1ee">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f1f1ee;--fg:#17191c;--accent:#52677a;--accent2:#78838c;--mut:#6c7176;--t2:#444a50;--line:rgba(23,25,28,.13);--display:'Bricolage Grotesque','Inter',system-ui,sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:auto;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+#gl{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+main,nav,footer{position:relative}
+::selection{background:var(--accent);color:#fff}
+.progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);z-index:100}
+button{font-family:inherit}
+button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+
+h2{font-family:var(--display);font-weight:600;font-size:clamp(32px,4.6vw,64px);line-height:1.04;letter-spacing:-.035em;text-wrap:balance}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:20px 5vw 28px;z-index:50;background:linear-gradient(var(--bg) 25%,rgba(241,241,238,0))}
+nav .logo{font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:-.04em}
+nav ul{display:flex;gap:34px;list-style:none;font-size:14px;font-weight:500}
+nav a{color:var(--t2);text-decoration:none;position:relative;transition:color .25s}
+nav a:hover{color:var(--fg)}
+nav a::after{content:'';position:absolute;left:0;bottom:-5px;height:1px;width:100%;background:var(--fg);transform:scaleX(0);transform-origin:left;transition:transform .35s}
+nav a:hover::after{transform:scaleX(1)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:15px 28px;border-radius:999px;border:0;background:var(--fg);color:var(--bg);font:500 15px 'Inter',sans-serif;text-decoration:none;cursor:pointer;transition:background .3s,transform .3s}
+.btn:hover{background:var(--accent)}
+.btn:active{transform:scale(.98)}
+.btn.fired{animation:fire 1.1s ease-out}
+@keyframes fire{0%{box-shadow:0 0 0 0 rgba(82,103,122,.45)}100%{box-shadow:0 0 0 38px rgba(82,103,122,0)}}
+
+/* HERO */
+.hero{height:100vh;height:100svh;min-height:620px;position:relative;overflow:hidden}
+.hero-title{position:absolute;z-index:0;left:0;right:0;top:11vh;font-family:var(--display);font-weight:700;font-size:clamp(64px,min(17vw,28vh),280px);line-height:.9;letter-spacing:-.055em;text-align:center;white-space:nowrap;color:var(--fg)}
+.hero-title span{display:inline-block;opacity:0;transform:translateY(46px)}
+body.intro-reveal .hero-title span{animation:rise 1.1s cubic-bezier(.2,.9,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.hero-meta{position:absolute;z-index:4;bottom:calc(5vh + 24px);left:5vw;right:5vw;display:flex;justify-content:space-between;align-items:flex-end;gap:28px;opacity:0;transform:translateY(20px)}
+body.intro-reveal .hero-meta{opacity:1;transform:none;transition:opacity 1s 1.5s,transform 1s 1.5s cubic-bezier(.2,.9,.2,1)}
+.hero-meta p{max-width:370px;font-size:16px;line-height:1.65;color:var(--t2)}
+
+/* STORY (scroll-driven laptop) */
+.story{height:640vh;position:relative}
+.story-stick{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+.cap{position:absolute;z-index:3;top:50%;width:min(390px,40vw);opacity:0;transform:translateY(-50%)}
+.cap.l{left:5vw}.cap.r{right:5vw}
+.eyebrow{display:block;font-size:14px;font-weight:500;color:var(--accent);margin-bottom:14px}
+.cap h2{font-size:clamp(28px,3.4vw,50px);margin-bottom:18px}
+.cap p{color:var(--t2);line-height:1.7;font-size:16px;max-width:38ch}
+.cap .fig{margin-top:24px;display:flex;align-items:baseline;gap:12px;padding-top:18px;border-top:1px solid var(--line)}
+.cap .fig b{font-family:var(--display);font-weight:600;font-size:clamp(30px,3vw,44px);letter-spacing:-.04em;line-height:1}
+.cap .fig span{font-size:14px;color:var(--mut)}
+.cap .hint{margin-top:14px;font-size:14px;color:var(--accent);font-weight:500}
+.steps{position:absolute;z-index:3;bottom:4vh;left:50%;transform:translateX(-50%);display:flex;gap:26px;font-size:13px;font-weight:500;color:var(--mut);opacity:0;transition:opacity .6s}
+.steps span{padding-bottom:6px;border-bottom:1px solid var(--line);transition:color .35s,border-color .35s}
+.steps span.on{color:var(--fg);border-color:var(--fg)}
+
+/* FINISH PICKER */
+.finish{height:220vh;position:relative}
+.finish-stick{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;padding:0 5vw}
+.finish-ui{position:relative;z-index:3;width:min(390px,42vw)}
+.finish-ui h2{font-size:clamp(28px,3.4vw,50px);margin-bottom:18px}
+.finish-ui p{color:var(--t2);line-height:1.7;max-width:38ch;min-height:5.2em}
+.swatches{display:flex;gap:16px;margin-top:24px}
+.sw{width:40px;height:40px;border-radius:50%;border:0;background:var(--c);cursor:pointer;position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18),0 1px 3px rgba(23,25,28,.3);transition:transform .3s}
+.sw::after{content:'';position:absolute;inset:-6px;border-radius:50%;border:1.5px solid var(--fg);opacity:0;transform:scale(.88);transition:opacity .3s,transform .3s}
+.sw:hover{transform:scale(1.06)}
+.sw.on::after{opacity:1;transform:none}
+.fin-name{margin-top:16px;font-family:var(--display);font-weight:600;font-size:22px;letter-spacing:-.02em}
+
+/* everything after the finish picker sits on a solid layer, so the laptop slides out behind it */
+.plain{position:relative;z-index:2;background:var(--bg)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 5vw}
+
+/* PERFORMANCE */
+.bench{padding:16vh 0 10vh}
+.bars{margin-top:44px;display:grid;gap:24px;max-width:820px}
+.bar{display:grid;grid-template-columns:minmax(130px,200px) 1fr 44px;gap:20px;align-items:center;font-size:15px;color:var(--t2)}
+.bar b{font-family:var(--display);font-weight:600;font-size:20px;color:var(--fg);text-align:right;letter-spacing:-.02em}
+.track{height:8px;background:rgba(23,25,28,.08);border-radius:4px;overflow:hidden}
+.track i{display:block;height:100%;width:0;border-radius:4px;background:var(--accent);transition:width 1.6s cubic-bezier(.2,.9,.2,1)}
+.bar:nth-child(2) .track i{transition-delay:.15s;opacity:.6}.bar:nth-child(3) .track i{transition-delay:.3s;opacity:.38}
+.bench.on .track i{width:var(--w)}
+.note{margin-top:22px;font-size:13px;color:var(--mut)}
+
+/* SPECS */
+.specs{display:grid;grid-template-columns:repeat(4,1fr);gap:0 28px;padding:6vh 0 12vh}
+.spec{padding-top:24px;border-top:1px solid var(--line)}
+.spec .n{font-family:var(--display);font-weight:600;font-size:clamp(40px,5.2vw,76px);letter-spacing:-.045em;line-height:1}
+.spec .n small{font-size:.34em;margin-left:6px;color:var(--mut);letter-spacing:0;font-weight:500}
+.spec p{margin-top:12px;color:var(--t2);font-size:15px}
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .9s,transform .9s cubic-bezier(.2,.9,.2,1)}
+.reveal.on{opacity:1;transform:none}
+
+/* TECH SPECS + FAQ */
+.techspec,.faq{padding:8vh 0}
+.techspec h2,.faq h2{margin-bottom:36px;font-size:clamp(30px,3.6vw,52px)}
+.techspec dl>div{display:grid;grid-template-columns:minmax(110px,220px) 1fr;gap:24px;padding:18px 0;border-top:1px solid var(--line)}
+.techspec dl>div:last-child{border-bottom:1px solid var(--line)}
+.techspec dt{font-size:15px;color:var(--mut)}
+.techspec dd{color:var(--fg);line-height:1.65}
+.faq details{border-top:1px solid var(--line);padding:20px 0}
+.faq details:last-child{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;list-style:none;font-weight:500;font-size:18px;display:flex;justify-content:space-between;gap:20px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';color:var(--accent);font-size:24px;line-height:1;transition:transform .3s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{margin-top:12px;color:var(--t2);line-height:1.7;max-width:60ch}
+.plain-end{height:6vh}
+
+/* CTA (the laptop comes back underneath and closes) */
+.cta{min-height:105vh;display:flex;flex-direction:column;align-items:center;text-align:center;padding:14vh 5vw 8vh;position:relative}
+.cta h2{position:relative;z-index:3;font-size:clamp(40px,7vw,104px);line-height:1;margin-bottom:22px}
+.cta .price{position:relative;z-index:3;font-size:17px;color:var(--t2);margin-bottom:30px}
+.cta .btn{position:relative;z-index:3}
+footer{z-index:2;padding:36px 5vw 84px;display:flex;justify-content:space-between;gap:12px 28px;flex-wrap:wrap;font-size:13px;color:var(--mut);border-top:1px solid var(--line);background:var(--bg)}
+
+/* SOUND CONTROLS */
+#hud-ctl{position:fixed;right:max(4vw,16px);bottom:max(18px,env(safe-area-inset-bottom));z-index:90;display:flex;gap:8px;transition:opacity 1s .9s}
+body.intro-active #hud-ctl{opacity:0;pointer-events:none;transition-delay:0s}
+#hud-ctl button{font:500 13px 'Inter',sans-serif;color:var(--fg);background:rgba(241,241,238,.82);border:1px solid var(--line);padding:9px 15px;border-radius:999px;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:inline-flex;align-items:center;gap:9px;transition:background .25s,color .25s}
+#hud-ctl button:hover{background:var(--fg);color:var(--bg)}
+.eq{display:inline-flex;gap:2px;align-items:flex-end;height:12px}
+.eq i{display:block;width:2px;background:currentColor;height:25%;animation:eq 1s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:-.3s}.eq i:nth-child(3){animation-delay:-.6s}.eq i:nth-child(4){animation-delay:-.15s}
+@keyframes eq{0%,100%{height:25%}50%{height:100%}}
+#snd[aria-pressed="false"] .eq i{animation:none;opacity:.5}
+
+/* INTRO (overlay is transparent: the 3D laptop underneath is the same one the page keeps using) */
+body.intro-active{overflow:hidden}
+#intro{position:fixed;inset:0;z-index:200;overflow:hidden;color:var(--fg);opacity:1;visibility:visible;transition:opacity 1.4s cubic-bezier(.5,0,.2,1);font-family:'Inter',sans-serif}
+#intro.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+#intro.is-leaving{opacity:0;pointer-events:none}
+nav,main,footer{transition:opacity 1.2s ease}
+nav{transition:opacity 1.2s ease,transform 1.2s ease}
+body.intro-active nav,body.intro-active main,body.intro-active footer{opacity:0;pointer-events:none}
+body.intro-active nav{transform:translateY(-16px)}
+body.intro-reveal nav,body.intro-reveal main,body.intro-reveal footer{opacity:1;pointer-events:auto;transition:opacity 1.4s ease .4s,transform 1.4s cubic-bezier(.2,.9,.2,1) .4s}
+body.intro-reveal nav{transform:none}
+#intro .intro-loader{position:absolute;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:var(--bg);font-size:14px;color:var(--mut);transition:opacity .8s;padding:0 6vw}
+#intro .intro-loader.off{opacity:0;pointer-events:none}
+.intro-gate{display:none;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.intro-loader.gate #intro-loader-txt{display:none}
+.intro-loader.gate .intro-gate{display:flex}
+.intro-gate .gate-title{font-family:var(--display);font-weight:700;font-size:clamp(40px,8vw,84px);letter-spacing:-.05em;line-height:1}
+.intro-gate p{font-size:15px;color:var(--mut);margin-bottom:14px}
+.intro-gate button{font:500 15px 'Inter',sans-serif;cursor:pointer;border:0;transition:background .3s,color .3s}
+.intro-gate #gate-on{background:var(--fg);color:var(--bg);padding:15px 30px;border-radius:999px}
+.intro-gate #gate-on:hover{background:var(--accent)}
+.intro-gate .gate-alt{background:transparent;color:var(--mut);padding:8px 14px;text-decoration:underline;text-underline-offset:4px}
+.intro-gate .gate-alt:hover{color:var(--fg)}
+#intro .intro-stage{position:absolute;inset:0;z-index:12;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;pointer-events:none;padding:12vh 5vw 0}
+#intro.is-leaving .intro-stage{opacity:0;transform:translateY(-18px);transition:opacity .9s ease,transform 1.4s cubic-bezier(.2,.8,.2,1)}
+#intro-title{font-family:var(--display);font-weight:700;font-size:clamp(46px,min(9vw,17vh),150px);line-height:.95;letter-spacing:-.05em;white-space:nowrap;color:var(--fg)}
+#intro-title .intro-letter{display:inline-block;opacity:0}
+#intro-title.show .intro-letter{animation:intro-in .9s cubic-bezier(.2,.9,.2,1) both;animation-delay:calc(var(--i)*.06s)}
+@keyframes intro-in{from{opacity:0;transform:translateY(28px);filter:blur(10px)}to{opacity:1;transform:none;filter:blur(0)}}
+#intro .intro-sub{margin-top:16px;font-size:clamp(16px,1.6vw,20px);color:var(--t2);opacity:0;transition:opacity 1s}
+#intro.show-sub .intro-sub{opacity:1}
+#intro .intro-controls{position:absolute;right:max(4vw,16px);top:18px;z-index:40;display:flex;gap:8px;opacity:0;transition:opacity .8s}
+#intro.is-playing .intro-controls{opacity:1}
+#intro .intro-controls button{font:500 13px 'Inter',sans-serif;color:var(--fg);background:rgba(241,241,238,.7);border:1px solid var(--line);padding:8px 14px;border-radius:999px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .25s,color .25s}
+#intro .intro-controls button:hover{background:var(--fg);color:var(--bg)}
+
+/* RESPONSIVE */
+@media(max-width:1000px){.specs{grid-template-columns:1fr 1fr;row-gap:36px}}
+@media(max-width:820px){
+  nav{padding:16px 5vw 24px}
+  nav ul li:not(:last-child){display:none}
+  nav ul a{color:var(--fg);padding:8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--bg)}
+  nav ul a::after{display:none}
+  .hero-meta{flex-direction:column;align-items:flex-start;gap:18px;bottom:max(5vh,28px)}
+  .hero-meta p{font-size:15px;max-width:34ch}
+  .steps{display:none}
+  .cap{left:5vw!important;right:5vw!important;top:auto;bottom:max(5vh,70px);width:auto;transform:none;padding:18px 18px 20px;background:rgba(241,241,238,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:16px}
+  .cap h2{font-size:26px;margin-bottom:10px}
+  .cap p{font-size:14px;line-height:1.6}
+  .cap .fig,.cap .hint{display:none}
+  .eyebrow{margin-bottom:8px;font-size:13px}
+  .finish-stick{align-items:flex-end;padding-bottom:max(5vh,70px)}
+  .finish-ui{width:100%;padding:18px 18px 20px;background:rgba(241,241,238,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:16px}
+  .finish-ui h2{font-size:26px;margin-bottom:10px}
+  .finish-ui p{min-height:0;font-size:14px}
+  .swatches{margin-top:16px}
+  .bar{grid-template-columns:1fr 44px;gap:8px 16px}
+  .bar span{grid-column:1/-1}
+  .techspec dl>div{grid-template-columns:1fr;gap:4px;padding:16px 0}
+  .cta{padding-top:12vh}
+}
+@media(max-width:480px){.specs{gap:0 18px}.spec .n{font-size:38px}footer{flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body class="intro-active">
+<div id="intro" class="is-playing" role="dialog" aria-label="Helix 16 introduction" aria-modal="true">
+  <div class="intro-loader" id="intro-loader">
+    <span id="intro-loader-txt">Loading</span>
+    <div class="intro-gate" id="intro-gate">
+      <div class="gate-title">Helix 16</div>
+      <p>Best with sound on.</p>
+      <button id="gate-on" type="button">Enter with sound</button>
+      <button id="gate-off" class="gate-alt" type="button">Enter silently</button>
+    </div>
+  </div>
+  <div class="intro-stage" id="intro-stage">
+    <h1 id="intro-title"></h1>
+    <div class="intro-sub">Built to disappear.</div>
+  </div>
+  <div class="intro-controls"><button id="intro-sound" type="button">Sound: On</button><button id="intro-replay" type="button">Replay</button></div>
+</div>
+<canvas id="gl"></canvas>
+<div class="progress" id="prog"></div>
+
+<nav>
+  <div class="logo">Helix</div>
+  <ul><li><a href="#story">Features</a></li><li><a href="#finish">Finishes</a></li><li><a href="#specs">Specs</a></li><li><a href="#reserve">Order</a></li></ul>
+</nav>
+
+<main>
+<section class="hero" id="hero">
+  <h1 class="hero-title" id="heroTitle" aria-label="Helix"></h1>
+  <div class="hero-meta">
+    <p>Sixteen inches of mini-LED, a near-silent cooling system and a battery that outlasts your day. 1.19 kg you will forget you are carrying.</p>
+    <a href="#story" class="btn" id="heroBtn">See how it works</a>
+  </div>
+</section>
+
+<section class="story" id="story">
+  <div class="story-stick">
+    <div class="cap l"><span class="eyebrow">Display</span><h2>A screen that<br>disappears.</h2><p>Sixteen inches of mini-LED with bezels as thin as a pencil line. Blacks go fully dark, highlights reach 1600 nits, and the 120 Hz panel keeps every scroll smooth.</p><div class="fig"><b>1600</b><span>nits peak brightness</span></div></div>
+    <div class="cap r"><span class="eyebrow">Keyboard</span><h2>Typed,<br>not pressed.</h2><p>1.3 mm of travel with a soft, damped landing. Each key is lit on its own, so it stays quiet in a library and easy to read in a dark room.</p><div class="fig"><b>1.3 mm</b><span>key travel</span></div><p class="hint">Try it: type on your keyboard.</p></div>
+    <div class="cap l"><span class="eyebrow">Cooling</span><h2>Quiet,<br>even under load.</h2><p>Two vapor chambers spread heat across the whole chassis, then two slim fans push it out through the hinge. On most days the fans never spin up.</p><div class="fig"><b>0 dB</b><span>fan noise at idle</span></div></div>
+    <div class="cap r"><span class="eyebrow">Battery</span><h2>A full day,<br>and half another.</h2><p>The Helix X1 chip does more work per watt, so a long day of editing, calls and code still ends with charge to spare. A 100 W charger fills it in under an hour.</p><div class="fig"><b>22 h</b><span>video playback</span></div></div>
+    <div class="steps" id="steps"><span>Display</span><span>Keyboard</span><span>Cooling</span><span>Battery</span></div>
+  </div>
+</section>
+
+<section class="finish" id="finish">
+  <div class="finish-stick">
+    <div class="finish-ui" id="finishUI">
+      <h2>Four finishes.<br>Pick yours.</h2>
+      <p id="fin-desc">Deep and calm. Hides fingerprints and lets the keyboard glow do the talking.</p>
+      <div class="swatches" role="radiogroup" aria-label="Choose a finish">
+        <button class="sw on" data-i="0" role="radio" aria-checked="true" aria-label="Graphite" style="--c:#5a6276"></button>
+        <button class="sw" data-i="1" role="radio" aria-checked="false" aria-label="Silver" style="--c:#b4bac8"></button>
+        <button class="sw" data-i="2" role="radio" aria-checked="false" aria-label="Midnight" style="--c:#2c4a8f"></button>
+        <button class="sw" data-i="3" role="radio" aria-checked="false" aria-label="Ember" style="--c:#9a5238"></button>
+      </div>
+      <div class="fin-name" id="fin-name">Graphite</div>
+    </div>
+  </div>
+</section>
+
+<div class="plain">
+  <section class="bench" id="bench">
+    <div class="wrap">
+      <h2>Faster, and<br>quieter doing it.</h2>
+      <div class="bars">
+        <div class="bar"><span>Helix 16</span><div class="track"><i style="--w:100%"></i></div><b>100</b></div>
+        <div class="bar"><span>Last generation</span><div class="track"><i style="--w:64%"></i></div><b>64</b></div>
+        <div class="bar"><span>Typical thin laptop</span><div class="track"><i style="--w:42%"></i></div><b>42</b></div>
+      </div>
+      <p class="note">Relative multi-core score, higher is better. Illustrative figures for this concept page.</p>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <section class="specs" id="specs">
+      <div class="spec reveal"><div class="n"><span data-c="22">0</span><small>h</small></div><p>Battery life</p></div>
+      <div class="spec reveal"><div class="n"><span data-c="1600">0</span><small>nits</small></div><p>Peak brightness</p></div>
+      <div class="spec reveal"><div class="n"><span data-c="1.19" data-d="2">0</span><small>kg</small></div><p>Weight</p></div>
+      <div class="spec reveal"><div class="n"><span data-c="64">0</span><small>GB</small></div><p>Unified memory</p></div>
+    </section>
+
+    <section class="techspec" id="techspec">
+      <h2 class="reveal">Full specs</h2>
+      <dl>
+        <div class="reveal"><dt>Chip</dt><dd>Helix X1 with a 12-core CPU, 16-core GPU and 16-core neural unit</dd></div>
+        <div class="reveal"><dt>Display</dt><dd>16-inch mini-LED, 3456 × 2160, 120 Hz, 1600 nits peak</dd></div>
+        <div class="reveal"><dt>Memory</dt><dd>16, 32 or 64 GB unified</dd></div>
+        <div class="reveal"><dt>Storage</dt><dd>512 GB to 4 TB SSD</dd></div>
+        <div class="reveal"><dt>Battery</dt><dd>99 Wh, up to 22 hours of video, 100 W USB-C charging</dd></div>
+        <div class="reveal"><dt>Ports</dt><dd>Three USB-C (40 Gbps), HDMI, SD card, headphone jack</dd></div>
+        <div class="reveal"><dt>Wireless</dt><dd>Wi-Fi 7, Bluetooth 5.4</dd></div>
+        <div class="reveal"><dt>Weight</dt><dd>1.19 kg, 14.9 mm thin</dd></div>
+      </dl>
+    </section>
+
+    <section class="faq" id="faq">
+      <h2 class="reveal">Questions</h2>
+      <div class="reveal">
+        <details><summary>Does it really run silent?</summary><p>For everyday work the fans stay off. They only spin up under long, heavy loads, and even then they stay low and even in tone.</p></details>
+        <details><summary>How fast does it charge?</summary><p>A 100 W USB-C charger takes it from empty to about 50% in 25 minutes and to full in under an hour.</p></details>
+        <details><summary>Can I upgrade the memory later?</summary><p>Memory is built into the chip package, so choose the amount you need at checkout. Storage goes up to 4 TB.</p></details>
+        <details><summary>What comes in the box?</summary><p>The laptop, a 100 W USB-C charger, a braided USB-C cable and a soft sleeve.</p></details>
+      </div>
+    </section>
+  </div>
+  <div class="plain-end"></div>
+</div>
+
+<section class="cta" id="reserve">
+  <h2>Meet your<br>next machine.</h2>
+  <div class="price">From $1,899. Ships in 10 days, with free engraving.</div>
+  <a href="#" class="btn" id="mag">Order Helix 16</a>
+</section>
+</main>
+
+<footer><span>© 2026 Helix Computing</span><span>Built to disappear</span><span>Instagram, YouTube, X</span></footer>
+
+<div id="hud-ctl">
+  <button id="snd" type="button" aria-pressed="true" aria-label="Toggle sound"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span id="snd-t">Sound on</span></button>
+  <button id="rep" type="button" aria-label="Replay intro">Replay</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =====================================================================
+   HELIX SOUND ENGINE (pure Web Audio, no files), tuned to sound like a laptop:
+   keystrokes, trackpad clicks, system pings, a startup chime, lid hinge,
+   and a quiet fan that spins up as you scroll.
+   ===================================================================== */
+const SFX=(()=>{
+  let ctx=null,master,comp,sfx,amb,noiseBuf,V=null;
+  let enabled=true,lastReveal=0;
+  const subs=[];
+  const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+  const ok=()=>!!ctx&&enabled&&ctx.state==='running';
+
+  function impulse(sec,decay){
+    const n=Math.floor(ctx.sampleRate*sec),b=ctx.createBuffer(2,n,ctx.sampleRate);
+    for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,decay)}
+    return b;
+  }
+  function init(){
+    if(ctx)return ctx;
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return null;
+    try{ctx=new AC({latencyHint:'interactive'})}catch(e){ctx=null;return null}
+    comp=ctx.createDynamicsCompressor();
+    comp.threshold.value=-16;comp.knee.value=20;comp.ratio.value=4;comp.attack.value=.005;comp.release.value=.22;
+    master=ctx.createGain();master.gain.value=enabled?.9:0;
+    sfx=ctx.createGain();amb=ctx.createGain();
+    const rev=ctx.createConvolver();rev.buffer=impulse(1.6,3);   /* small room, not a cathedral */
+    const send=ctx.createGain();send.gain.value=.16;
+    const ret=ctx.createGain();ret.gain.value=.9;
+    sfx.connect(master);sfx.connect(send);send.connect(rev);rev.connect(ret);ret.connect(master);
+    amb.connect(master);master.connect(comp);comp.connect(ctx.destination);
+    const len=ctx.sampleRate*2;
+    noiseBuf=ctx.createBuffer(1,len,ctx.sampleRate);
+    const d=noiseBuf.getChannelData(0);for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+    return ctx;
+  }
+  async function tryResume(ms=350){
+    if(!init())return false;
+    if(ctx.state==='running')return true;
+    try{await Promise.race([ctx.resume(),new Promise(r=>setTimeout(r,ms))])}catch(e){}
+    return ctx.state==='running';
+  }
+  function unlock(){if(!init())return;if(ctx.state!=='running')ctx.resume().catch(()=>{})}
+  function setEnabled(on){
+    enabled=!!on;
+    if(enabled){init();startVoices();unlock()}
+    if(ctx&&master){master.gain.cancelScheduledValues(ctx.currentTime);master.gain.setTargetAtTime(enabled?.9:0,ctx.currentTime,.06)}
+    subs.forEach(f=>f(enabled));
+  }
+  function toggle(){setEnabled(!enabled);if(enabled)setTimeout(()=>click(.2,1.2),80)}
+  function onChange(f){subs.push(f);f(enabled)}
+
+  /* ---------- persistent voice: the laptop fan ---------- */
+  function startVoices(){
+    if(V||!init())return;
+    const ws=ctx.createBufferSource();ws.buffer=noiseBuf;ws.loop=true;
+    const fbp=ctx.createBiquadFilter();fbp.type='bandpass';fbp.Q.value=.7;fbp.frequency.value=700;
+    const fg=ctx.createGain();fg.gain.value=0;ws.connect(fbp);fbp.connect(fg);fg.connect(amb);
+    const t1=ctx.createOscillator();t1.type='sine';t1.frequency.value=95;
+    const tg=ctx.createGain();tg.gain.value=0;t1.connect(tg);tg.connect(amb);
+    const wh=ctx.createOscillator();wh.type='sine';wh.frequency.value=7300;
+    const whg=ctx.createGain();whg.gain.value=0;wh.connect(whg);whg.connect(amb);
+    ws.start();t1.start();wh.start();
+    V={fbp,fg,t1,tg,whg};
+  }
+  function drive(p){
+    if(!V||!ctx)return;
+    const t=ctx.currentTime,k=p.k||.15,s=(prm,val,tc=k)=>prm.setTargetAtTime(val,t,tc);
+    if(p.fan!=null)s(V.fg.gain,p.fan);
+    if(p.fanF!=null)s(V.fbp.frequency,p.fanF);
+    if(p.tone!=null)s(V.tg.gain,p.tone);
+    if(p.toneF!=null)s(V.t1.frequency,p.toneF);
+    if(p.whine!=null)s(V.whg.gain,p.whine);
+  }
+  /* scrolling works the machine harder: the fan spins up with scroll speed */
+  function scroll(v){
+    if(!V)return;
+    drive({fan:.010+Math.pow(v,1.1)*.075,fanF:650+v*1900,tone:.004+v*.02,toneF:90+v*75,whine:v>.45?(v-.45)*.006:0});
+  }
+
+  /* ---------- building blocks ---------- */
+  function tone(o){
+    const {type='sine',f=440,f2=null,t=0,dur=.2,vol=.2,a=.004,bus=sfx}=o;
+    const T=ctx.currentTime+t,x=ctx.createOscillator(),g=ctx.createGain();
+    x.type=type;x.frequency.setValueAtTime(f,T);
+    if(f2)x.frequency.exponentialRampToValueAtTime(f2,T+dur);
+    g.gain.setValueAtTime(.0001,T);g.gain.exponentialRampToValueAtTime(vol,T+a);g.gain.exponentialRampToValueAtTime(.0001,T+dur);
+    x.connect(g);g.connect(bus);x.start(T);x.stop(T+dur+.05);
+  }
+  function burst(o){
+    const {type='bandpass',f=1000,f2=null,q=1,t=0,dur=.2,vol=.2,a=.01,bus=sfx}=o;
+    const T=ctx.currentTime+t,s=ctx.createBufferSource(),fl=ctx.createBiquadFilter(),g=ctx.createGain();
+    s.buffer=noiseBuf;s.loop=true;fl.type=type;fl.Q.value=q;fl.frequency.setValueAtTime(f,T);
+    if(f2)fl.frequency.exponentialRampToValueAtTime(f2,T+dur);
+    g.gain.setValueAtTime(.0001,T);g.gain.exponentialRampToValueAtTime(vol,T+Math.min(a,dur*.9));g.gain.exponentialRampToValueAtTime(.0001,T+dur);
+    s.connect(fl);fl.connect(g);g.connect(bus);s.start(T,Math.random()*1.5);s.stop(T+dur+.05);
+  }
+
+  /* ---------- laptop one-shots (gated by ok()) ---------- */
+  /* one trackpad / mouse "tik" */
+  function click(vol=.25,p=1,t=0){
+    if(!ok())return;
+    tone({type:'triangle',f:950*p,f2:320*p,t,dur:.03,vol,a:.001});
+    burst({f:2300*p,q:1.4,t,dur:.022,vol:vol*.6,a:.001});
+  }
+  /* trackpad press: down then up */
+  function trackpad(vol=.28,t=0){click(vol,.85,t);click(vol*.6,.65,t+.1)}
+  /* keyboard key: thock + clack */
+  function key(p=1,vol=.35,t=0){
+    if(!ok())return;
+    burst({type:'highpass',f:2600,t,dur:.025,vol:vol*.7,a:.002});
+    tone({type:'triangle',f:210*p,f2:110*p,t,dur:.07,vol});
+    tone({f:1600*p,f2:900*p,t,dur:.03,vol:vol*.25});
+  }
+  function typeBurst(n=16,span=1.1){
+    if(!ok())return;
+    for(let i=0;i<n;i++)key(.85+Math.random()*.4,.22+Math.random()*.16,i*(span/n)+Math.random()*.03);
+    key(.7,.4,span+.08);
+  }
+  /* soft system notification ping */
+  function ping(f=880,vol=.05,t=0){
+    if(!ok())return;
+    tone({f,t,dur:.55,vol,a:.005});tone({f:f*1.5,t:t+.1,dur:.7,vol:vol*.8,a:.005});
+  }
+  function swish(dur=.4,vol=.05,t=0){if(!ok())return;burst({f:400,f2:2400,q:.8,t,dur,vol,a:dur*.45})}
+
+  function blip(f=1800,vol=.07){if(!ok())return;tone({f,dur:.05,vol})}
+  function hover(){click(.06,1.35)}
+  function slide(){click(.09,1.1)}
+  function tick(p=1,vol=.3){click(vol*.8,p)}
+  function whoosh(dur=.7,f=300,f2=3500,vol=.2,t=0){if(!ok())return;burst({f,f2,q:.9,dur,vol:vol*.6,a:dur*.45,t})}
+  function boom(vol=.3,t=0){if(!ok())return;tone({f:100,f2:50,dur:.3,vol,t,a:.004})}
+  function reveal(){
+    if(!ok())return;const n=performance.now();if(n-lastReveal<220)return;lastReveal=n;
+    swish(.35,.035);
+  }
+  function cap(i){
+    if(!ok())return;
+    const f=[740,831,988,1109][i%4];
+    tone({f,dur:.4,vol:.05,a:.004});tone({f:f*1.5,t:.09,dur:.5,vol:.035,a:.004});click(.14,1);
+  }
+  function finish(i=0){
+    if(!ok())return;
+    trackpad(.22);ping([587,698,784,932][i%4],.04,.12);
+  }
+  function hinge(dur=1.3,t=0){
+    if(!ok())return;
+    burst({q:14,f:360,f2:720,t,dur,vol:.04,a:dur*.35});
+    burst({q:10,f:610,f2:340,t:t+dur*.15,dur:dur*.8,vol:.018,a:dur*.3});
+    tone({type:'triangle',f:95,f2:140,t,dur,vol:.025,a:dur*.4});
+    tone({type:'square',f:210,f2:90,t:t+dur,dur:.05,vol:.05});
+    burst({type:'highpass',f:2000,t:t+dur,dur:.04,vol:.09,a:.002});
+  }
+  /* lid shutting: soft thud plus the magnet latch */
+  function thunk(){
+    if(!ok())return;
+    tone({f:110,f2:48,dur:.22,vol:.34,a:.004});
+    burst({type:'lowpass',f:380,dur:.12,vol:.2,a:.003});
+    click(.22,.7,.03);click(.12,1.4,.08);
+  }
+  /* startup: power-key click, then the warm chord, then the fan spins up */
+  function boot(){
+    if(!ok())return;
+    key(.6,.5);
+    const T=.28;
+    [87.31,130.81,174.61,261.63,349.23,523.25,698.46].forEach((f,i)=>{
+      tone({type:'triangle',f,t:T,dur:2.6,vol:.03+(i<3?.012:0),a:.03});
+      tone({type:'sine',f:f*1.004,t:T,dur:2.4,vol:.02,a:.04});
+    });
+    fanSpin(T+.5);
+  }
+  function fanSpin(t=0){
+    if(!ok())return;
+    burst({f:250,f2:1500,q:.6,t,dur:2.2,vol:.05,a:.7});
+    tone({f:70,f2:150,t,dur:2.0,vol:.025,a:.8});
+  }
+  function swell(dur=2.6){if(!ok())return;burst({type:'lowpass',f:500,dur,vol:.02,a:dur*.8})}   /* quiet room air */
+  function titleHits(n,skip=-1){
+    if(!ok())return;
+    for(let i=0;i<n;i++){if(i===skip)continue;key(.85+Math.random()*.3,.3,.4+i*.09)}
+    key(.65,.45,.4+n*.09+.06);
+  }
+  function chimeTag(){ping(988,.045)}
+  function chime(){ping(880,.04)}
+  function riser(dur=1.2){swish(dur,.07)}
+  function heroIn(n=5){
+    if(!ok())return;
+    for(let i=0;i<n;i++)key(.9+Math.random()*.25,.28,.8+i*.09);
+    swish(.9,.06,.6);
+  }
+  function counter(dur=1.8){
+    if(!ok())return;
+    const N=18;
+    for(let k=0;k<N;k++){
+      const p=(k+1)/N,u=1-Math.pow(1-p,.25);
+      click(.1,1+p*.7,dur*u);
+    }
+    ping(1175,.05,dur);
+  }
+  function arrive(){ping(1047,.045)}
+  function confirm(){
+    if(!ok())return;
+    typeBurst(6,.35);
+    trackpad(.25,.5);
+    [880,1109,1319].forEach((f,i)=>tone({f,t:.7+i*.1,dur:.9,vol:.045,a:.005}));
+    swish(.5,.06,.55);
+  }
+
+  /* ---------- lifecycle ---------- */
+  ['pointerdown','keydown','touchend','click'].forEach(ev=>addEventListener(ev,()=>{
+    if(enabled&&ctx&&ctx.state!=='running')ctx.resume().catch(()=>{});
+  },{passive:true}));
+  document.addEventListener('visibilitychange',()=>{
+    if(!ctx)return;
+    if(document.hidden)ctx.suspend().catch(()=>{});else if(enabled)ctx.resume().catch(()=>{});
+  });
+
+  return {init,tryResume,unlock,setEnabled,toggle,onChange,startVoices,drive,scroll,
+    blip,hover,slide,whoosh,boom,tick,key,click,trackpad,ping,swish,typeBurst,hinge,thunk,boot,fanSpin,swell,reveal,cap,
+    titleHits,chimeTag,chime,riser,heroIn,counter,arrive,confirm,finish,
+    get enabled(){return enabled}};
+})();
+
+/* sound controls */
+(()=>{
+  const snd=document.getElementById('snd'),txt=document.getElementById('snd-t'),introSnd=document.getElementById('intro-sound');
+  SFX.onChange(on=>{
+    snd.setAttribute('aria-pressed',on);txt.textContent='Sound '+(on?'on':'off');
+    introSnd.textContent='Sound: '+(on?'On':'Off');
+  });
+  snd.addEventListener('click',()=>SFX.toggle());
+  introSnd.addEventListener('click',()=>SFX.toggle());
+  document.getElementById('rep').addEventListener('click',()=>{SFX.unlock();dispatchEvent(new Event('helix:replay'))});
+})();
+</script>
+<script>
+const $=s=>document.querySelector(s);
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>t*t*(3-2*t);
+const easeIO=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+
+/* ===================== 3D SCENE ===================== */
+const R=new THREE.WebGLRenderer({canvas:$('#gl'),antialias:true,alpha:true});
+R.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(32,1,.1,200);
+const ambL=new THREE.AmbientLight(0xaab4d0,.4);
+const keyL=new THREE.DirectionalLight(0xe3ecff,1.15);keyL.position.set(3,5,6);
+const rimL=new THREE.DirectionalLight(0xdfe6ee,1.5);rimL.position.set(-5,3,-4);
+const rim2L=new THREE.DirectionalLight(0xfff0dc,1.0);rim2L.position.set(5,1,-3);
+scene.add(ambL,keyL,rimL,rim2L);
+
+/* studio reflections: a dark dome with a few soft light panels, so the metal has something to reflect */
+try{
+  const pm=new THREE.PMREMGenerator(R),es=new THREE.Scene();
+  const gc=document.createElement('canvas');gc.width=16;gc.height=256;const gx=gc.getContext('2d');
+  const gg=gx.createLinearGradient(0,0,0,256);gg.addColorStop(0,'#ffffff');gg.addColorStop(.5,'#d9dfeb');gg.addColorStop(1,'#8d97ab');gx.fillStyle=gg;gx.fillRect(0,0,16,256);
+  es.add(new THREE.Mesh(new THREE.SphereGeometry(50,32,16),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(gc),side:THREE.BackSide})));
+  const panel=(w,h,pos,c,k)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({color:new THREE.Color(c).multiplyScalar(k),side:THREE.DoubleSide}));m.position.set(pos[0],pos[1],pos[2]);m.lookAt(0,0,0);es.add(m)};
+  panel(30,10,[0,30,10],0xffffff,5);panel(10,24,[-30,8,0],0xdfe6ff,3);panel(10,24,[30,8,-6],0xffffff,3);panel(24,6,[0,-12,25],0xffffff,1.5);
+  scene.environment=pm.fromScene(es,.02).texture;
+}catch(err){}
+function rr(w,h,r){const s=new THREE.Shape(),x=-w/2,y=-h/2;
+  s.moveTo(x+r,y);s.lineTo(x+w-r,y);s.quadraticCurveTo(x+w,y,x+w,y+r);s.lineTo(x+w,y+h-r);s.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  s.lineTo(x+r,y+h);s.quadraticCurveTo(x,y+h,x,y+h-r);s.lineTo(x,y+r);s.quadraticCurveTo(x,y,x+r,y);return s}
+function slab(w,h,d,r){const g=new THREE.ExtrudeGeometry(rr(w,h,r),{depth:d,bevelEnabled:true,bevelThickness:.012,bevelSize:.012,bevelSegments:3,curveSegments:8});g.translate(0,0,-d/2);return g}
+
+const W=3.4,D=2.3,BH=.1,LT=.07;
+const alu=new THREE.MeshStandardMaterial({color:0x5a6276,metalness:.7,roughness:.3});
+const alu2=new THREE.MeshStandardMaterial({color:0x4c5468,metalness:.72,roughness:.28});
+const aluDark=new THREE.MeshStandardMaterial({color:0x2c303c,metalness:.4,roughness:.5});
+
+const L=new THREE.Group();scene.add(L);
+/* soft glow on the "floor" under the laptop */
+const hc=document.createElement('canvas');hc.width=hc.height=256;const hx=hc.getContext('2d');
+const hg=hx.createRadialGradient(128,128,0,128,128,128);hg.addColorStop(0,'rgba(22,30,64,.5)');hg.addColorStop(.5,'rgba(22,30,64,.18)');hg.addColorStop(1,'rgba(22,30,64,0)');hx.fillStyle=hg;hx.fillRect(0,0,256,256);
+const halo=new THREE.Mesh(new THREE.PlaneGeometry(9,6.5).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(hc),transparent:true,opacity:0,depthWrite:false}));
+halo.position.set(0,-.35,0);L.add(halo);
+const base=new THREE.Mesh(slab(W,D,BH,.14),alu);base.rotation.x=-Math.PI/2;L.add(base);
+
+const deck=new THREE.Mesh(new THREE.PlaneGeometry(3.1,1.45).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({color:0x0a0b10,roughness:.8,metalness:.1}));
+deck.position.set(0,.0635,-.42);L.add(deck);
+
+/* keys */
+const COLS=14,ROWS=5,PITCH=.205,KY=.0635+.0175;
+const keyGeo=new THREE.BoxGeometry(.18,.035,.18);
+const legGeo=new THREE.PlaneGeometry(.075,.075).rotateX(-Math.PI/2);
+const keys=new THREE.InstancedMesh(keyGeo,new THREE.MeshStandardMaterial({color:0x14161d,roughness:.55,metalness:.2}),COLS*ROWS);
+const legs=new THREE.InstancedMesh(legGeo,new THREE.MeshBasicMaterial({color:0xffffff}),COLS*ROWS);
+const m4=new THREE.Matrix4(),col=new THREE.Color();
+for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+  const i=r*COLS+c,x=-1.435+.1025+c*PITCH,z=-.85+r*PITCH;
+  m4.makeTranslation(x,KY,z);keys.setMatrixAt(i,m4);
+  m4.makeTranslation(x,KY+.0195,z);legs.setMatrixAt(i,m4);
+  legs.setColorAt(i,col.setRGB(0,0,0));
+}
+keys.frustumCulled=false;legs.frustumCulled=false;L.add(keys,legs);
+const space=new THREE.Mesh(new THREE.BoxGeometry(1.2,.035,.18),new THREE.MeshStandardMaterial({color:0x14161d,roughness:.55,metalness:.2}));
+space.position.set(0,KY,.17);L.add(space);
+/* real typing lights and presses the 3D keys */
+const KMAP={};['1234567890','qwertyuiop','asdfghjkl','zxcvbnm'].forEach((row,r)=>[...row].forEach((ch,k)=>KMAP[ch]=r*COLS+[0,1,2,3][r]+k));
+const keyHit=new Float32Array(COLS*ROWS).fill(-9),keyDown=new Uint8Array(COLS*ROWS);
+const keyGlow=new THREE.Mesh(new THREE.PlaneGeometry(3.0,1.4).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0xffc98a,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));
+keyGlow.position.set(0,.0645,-.38);L.add(keyGlow);
+
+/* trackpad */
+const tpB=new THREE.Mesh(new THREE.PlaneGeometry(1.14,.76).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({color:0x2b303d,roughness:.5}));
+tpB.position.set(0,.0635,.74);
+const tp=new THREE.Mesh(new THREE.PlaneGeometry(1.1,.72).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({color:0x171a22,roughness:.35,metalness:.3}));
+tp.position.set(0,.0645,.74);L.add(tpB,tp);
+
+/* hinge + vents */
+const hinge=new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,W*.78,20).rotateZ(Math.PI/2),aluDark);
+hinge.position.set(0,.075,-D/2+.03);L.add(hinge);
+const ventMat=new THREE.MeshBasicMaterial({color:0xff9a5c});
+const vents=new THREE.Group();
+for(let i=0;i<26;i++){const v=new THREE.Mesh(new THREE.BoxGeometry(.07,.03,.012),ventMat);v.position.set(-1.25+i*.1,.0,-D/2-.03);vents.add(v)}
+L.add(vents);
+
+/* lid */
+const lid=new THREE.Group();lid.position.set(0,.07,-D/2+.03);L.add(lid);
+const lidBody=new THREE.Mesh(slab(W,D,LT,.14),alu2);lidBody.rotation.x=-Math.PI/2;lidBody.position.z=D/2-.03;lid.add(lidBody);
+const bezel=new THREE.Mesh(new THREE.PlaneGeometry(W-.12,D-.12).rotateX(Math.PI/2),new THREE.MeshBasicMaterial({color:0x040405}));
+bezel.position.set(0,-.048,D/2-.03);lid.add(bezel);
+
+const sc=document.createElement('canvas');sc.width=800;sc.height=500;const sx=sc.getContext('2d');
+const scTex=new THREE.CanvasTexture(sc);scTex.minFilter=THREE.LinearFilter;scTex.generateMipmaps=false;
+const scrMat=new THREE.MeshBasicMaterial({map:scTex,color:0x000000});
+const screen=new THREE.Mesh(new THREE.PlaneGeometry(W-.3,D-.3).rotateX(Math.PI/2),scrMat);
+screen.position.set(0,-.0495,D/2-.03);lid.add(screen);
+const scrLight=new THREE.PointLight(0xfff0dc,0,5);scrLight.position.set(0,-.8,D/2);lid.add(scrLight);
+
+/* logo on the lid back */
+const lg=document.createElement('canvas');lg.width=lg.height=256;const lx=lg.getContext('2d');
+lx.strokeStyle='rgba(255,255,255,.95)';lx.lineWidth=10;lx.beginPath();lx.arc(128,128,86,0,Math.PI*2);lx.stroke();
+lx.fillStyle='rgba(255,255,255,.95)';lx.font='900 100px Unbounded, Inter, sans-serif';lx.textAlign='center';lx.textBaseline='middle';lx.fillText('H',128,136);
+const logo=new THREE.Mesh(new THREE.PlaneGeometry(.55,.55).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(lg),transparent:true,opacity:.85,depthWrite:false}));
+logo.position.set(0,.0495,D/2-.03);lid.add(logo);
+
+function drawScreen(t){
+  const g=sx.createLinearGradient(0,0,800,500);g.addColorStop(0,'#18212b');g.addColorStop(1,'#2a231e');
+  sx.fillStyle=g;sx.fillRect(0,0,800,500);
+  const blobs=[[.26,.4,'224,160,98',.5],[.74,.55,'82,103,122',.75],[.5,.92,'236,226,205',.2]];
+  blobs.forEach((b,i)=>{
+    const x=(b[0]+Math.sin(t*.35+i*2)*.12)*800,y=(b[1]+Math.cos(t*.3+i*3)*.1)*500;
+    const rg=sx.createRadialGradient(x,y,0,x,y,310);rg.addColorStop(0,`rgba(${b[2]},${b[3]})`);rg.addColorStop(1,`rgba(${b[2]},0)`);
+    sx.fillStyle=rg;sx.fillRect(0,0,800,500);
+  });
+  sx.fillStyle='rgba(255,255,255,.07)';sx.fillRect(0,0,800,26);
+  sx.fillStyle='#f1ece2';sx.font='600 13px Inter, sans-serif';sx.fillText('Helix',14,17);
+  const d=new Date();sx.textAlign='right';sx.fillText(d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),786,17);sx.textAlign='left';
+  sx.fillStyle='rgba(14,17,22,.5)';sx.strokeStyle='rgba(255,255,255,.16)';sx.lineWidth=1.5;
+  sx.beginPath();sx.roundRect?sx.roundRect(170,100,460,270,18):sx.rect(170,100,460,270);sx.fill();sx.stroke();
+  sx.fillStyle='#fff';sx.font='700 20px Bricolage Grotesque, Inter, sans-serif';sx.fillText('Helix X1',200,146);
+  sx.fillStyle='#a9b0ba';sx.font='400 13px Inter, sans-serif';sx.fillText('12 cores, all quiet',200,170);
+  for(let i=0;i<12;i++){
+    const h=30+(Math.sin(t*1.6+i*.8)*.5+.5)*120,x=200+i*33;
+    const bg=sx.createLinearGradient(0,350-h,0,350);bg.addColorStop(0,'#f0c48f');bg.addColorStop(1,'#c98a52');
+    sx.fillStyle=bg;sx.fillRect(x,350-h,20,h);
+  }
+  sx.fillStyle='rgba(255,255,255,.13)';sx.beginPath();sx.roundRect?sx.roundRect(250,430,300,46,23):sx.rect(250,430,300,46);sx.fill();
+  ['#f0c48f','#52677a','#e7e1d4','#c98a52','#7f9aae','#d9d2c3'].forEach((c,i)=>{sx.fillStyle=c;sx.beginPath();sx.arc(290+i*44,453,13,0,Math.PI*2);sx.fill()});
+  scTex.needsUpdate=true;
+}
+drawScreen(0);
+
+
+
+function resize(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}
+resize();addEventListener('resize',resize);
+
+/* ===================== POSES ===================== */
+/* y = turn, x = tilt, lid = opening (rad), d = camera distance, px/py = offset */
+const P0={y:.5,x:.05,lid:1.85,d:9.2,px:0,py:-.9};
+const POSES=[
+  {s:0,...P0},
+  {s:.21,y:0,x:.02,lid:1.72,d:6.5,px:1.0,py:-.1},
+  {s:.47,y:-.25,x:.55,lid:1.5,d:6.6,px:-1.1,py:-.15},
+  {s:.71,y:2.4,x:.3,lid:1.6,d:6.8,px:1.1,py:-.1},
+  {s:.915,y:.9,x:.15,lid:1.85,d:7.6,px:-1.1,py:-.1},
+  {s:1,y:1.6,x:.3,lid:1.85,d:9,px:0,py:6.5}
+];
+function storyPose(sp){
+  let i=0;while(i<POSES.length-2&&sp>POSES[i+1].s)i++;
+  const a=POSES[i],b=POSES[i+1];
+  const t=ease(clamp(((sp-a.s)/(b.s-a.s)-.18)/.64));   /* holds at each caption, moves between */
+  const o={};for(const k of ['y','x','lid','d','px','py'])o[k]=lerp(a[k],b[k],t);return o;
+}
+const FIN=[
+  {n:'Graphite',a:0x5a6276,b:0x4c5468,d:'Deep and calm. Hides fingerprints and lets the keyboard glow do the talking.'},
+  {n:'Silver',a:0xb4bac8,b:0x9fa6b6,d:'Bright and clean. The classic look, with an edge that catches the light.'},
+  {n:'Midnight',a:0x2c4a8f,b:0x233b73,d:'A dark blue that reads almost black indoors and shows its colour in daylight.'},
+  {n:'Ember',a:0x9a5238,b:0x82452f,d:'A warm copper orange, anodized in a single bath so the colour runs deep.'}
+];
+const finA=new THREE.Color(FIN[0].a),finB=new THREE.Color(FIN[0].b);
+const cur={...P0,d:20,y:1.6,x:.35,py:-.25,lid:0};
+let introOn=true,scr=0,lightK=.35,lidK=1,lidT=1,thunked=false;
+
+/* ===================== PAGE STATE ===================== */
+const heroTitle=$('#heroTitle');
+'Helix'.split('').forEach((c,i)=>{const s=document.createElement('span');s.textContent=c;s.style.animationDelay=(.7+i*.09)+'s';heroTitle.appendChild(s)});
+
+const isLive=()=>!document.body.classList.contains('intro-active');
+const prog=$('#prog'),storySec=$('#story'),ctaSec=$('#reserve');
+const caps=[...document.querySelectorAll('.cap')],stepEls=[...document.querySelectorAll('#steps span')],stepsBox=$('#steps');
+const WIN=[[.1,.33],[.37,.57],[.62,.8],[.84,.99]];
+function secProg(sec){const r=sec.getBoundingClientRect();return clamp(-r.top/(r.height-innerHeight))}
+
+/* counters + reveals */
+let lastCount=0;
+const cio=new IntersectionObserver(es=>es.forEach(e=>{
+  if(!e.isIntersecting)return;cio.unobserve(e.target);
+  const n=performance.now();if(isLive()&&n-lastCount>700){lastCount=n;SFX.counter(1.8)}
+  const el=e.target.querySelector('[data-c]'),to=+el.dataset.c,d=+(el.dataset.d||0);let t0;
+  const f=t=>{t0??=t;const p=Math.min((t-t0)/1800,1),v=to*(1-Math.pow(1-p,4));el.textContent=v.toFixed(d);if(p<1)requestAnimationFrame(f)};
+  requestAnimationFrame(f);
+}),{threshold:.5});
+document.querySelectorAll('.spec').forEach(s=>cio.observe(s));
+const rio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');rio.unobserve(e.target);if(isLive())SFX.reveal()}}),{threshold:.2});
+document.querySelectorAll('.reveal').forEach((el,i)=>{el.style.transitionDelay=(i%4)*.08+'s';rio.observe(el)});
+
+/* mouse + UI sounds */
+let mx=0,my=0,tx=0,ty=0;
+addEventListener('mousemove',e=>{tx=e.clientX/innerWidth-.5;ty=e.clientY/innerHeight-.5});
+document.querySelectorAll('nav a').forEach(a=>{a.addEventListener('mouseenter',()=>SFX.hover());a.addEventListener('click',()=>SFX.whoosh(.8,200,3500,.22))});
+document.querySelectorAll('.btn').forEach(b=>b.addEventListener('mouseenter',()=>SFX.slide()));
+$('#heroBtn').addEventListener('click',()=>SFX.whoosh(.9,200,3800,.22));
+document.querySelectorAll('.spec').forEach(s=>s.addEventListener('mouseenter',()=>SFX.tick(.8,.28)));
+const mag=$('#mag');
+mag.addEventListener('click',e=>{e.preventDefault();SFX.confirm();mag.classList.remove('fired');void mag.offsetWidth;mag.classList.add('fired');setTimeout(()=>mag.classList.remove('fired'),1200)});
+
+/* finish picker, performance bars, faq */
+const finishSec=$('#finish'),finishUI=$('#finishUI');
+document.querySelectorAll('.sw').forEach(b=>b.addEventListener('click',()=>{
+  const i=+b.dataset.i;
+  document.querySelectorAll('.sw').forEach(s=>{const on=s===b;s.classList.toggle('on',on);s.setAttribute('aria-checked',on)});
+  finA.setHex(FIN[i].a);finB.setHex(FIN[i].b);
+  $('#fin-name').textContent=FIN[i].n;$('#fin-desc').textContent=FIN[i].d;
+  SFX.finish(i);
+}));
+const benchEl=$('#bench');
+new IntersectionObserver((es,ob)=>es.forEach(e=>{if(e.isIntersecting){benchEl.classList.add('on');ob.disconnect();if(isLive())SFX.counter(1.6)}}),{threshold:.4}).observe(benchEl);
+document.querySelectorAll('.faq details').forEach(d=>d.addEventListener('toggle',()=>{if(isLive())SFX.tick(d.open?1.2:.8,.3)}));
+addEventListener('keydown',e=>{
+  if(!isLive()||e.metaKey||e.ctrlKey||e.altKey)return;
+  let i=KMAP[(e.key||'').toLowerCase()];
+  if(i==null){if(e.key.length===1||e.key==='Enter'||e.key==='Backspace')i=4*COLS+Math.floor(Math.random()*COLS);else return}
+  keyHit[i]=performance.now()/1000;SFX.key(.85+Math.random()*.3,.3);
+});
+
+/* ===================== INTRO ===================== */
+const overlay=$('#intro'),itTitle=$('#intro-title'),stage=$('#intro-stage'),loader=$('#intro-loader');
+'Helix 16'.split('').forEach((ch,i)=>{const s=document.createElement('span');s.className='intro-letter';s.style.setProperty('--i',i);s.innerHTML=ch===' '?'&nbsp;':ch;itTitle.appendChild(s)});
+let live=false,iStart=0,flags={},warp=0,lastPct=-1;
+function introPose(t){
+  const a=ease(clamp(t/3.4)),lidA=easeIO(clamp((t-3.1)/1.4));
+  return {y:lerp(1.6,P0.y,a),x:lerp(.35,P0.x,a),lid:P0.lid*lidA,d:lerp(20,P0.d,a),px:0,py:lerp(1.2,P0.py,a)};
+}
+function launch(){loader.classList.add('off');restartIntro()}
+function restartIntro(){
+  scrollTo(0,0);
+  overlay.classList.remove('is-hidden','is-leaving');overlay.classList.add('is-playing');overlay.setAttribute('aria-hidden','false');
+  document.body.classList.remove('intro-reveal');document.body.classList.add('intro-active');
+  itTitle.classList.remove('show');stage.classList.remove('show-sub');
+  flags={};introOn=true;scr=0;lightK=.35;lidK=1;lidT=1;thunked=false;lastPct=-1;warp=0;
+  clearTimeout(restartIntro.h);
+  SFX.startVoices();SFX.drive({fan:0,tone:0,whine:0});
+  iStart=performance.now();live=true;
+}
+async function begin(){
+  if(begin.done)return;begin.done=true;
+  const canPlay=await SFX.tryResume();
+  if(canPlay||!SFX.enabled){launch();return}
+  loader.classList.add('gate');$('#gate-on').focus({preventScroll:true});
+}
+$('#gate-on').addEventListener('click',()=>{SFX.setEnabled(true);SFX.unlock();launch()});
+$('#gate-off').addEventListener('click',()=>{SFX.setEnabled(false);launch()});
+$('#intro-replay').addEventListener('click',()=>{SFX.unlock();restartIntro()});
+addEventListener('helix:replay',restartIntro);
+addEventListener('keydown',e=>{
+  if((e.code==='Space'||e.code==='KeyR')&&live&&!overlay.classList.contains('is-hidden')){e.preventDefault();SFX.unlock();restartIntro()}
+});
+Promise.race([document.fonts?document.fonts.ready:Promise.resolve(),new Promise(r=>setTimeout(r,2500))]).then(()=>setTimeout(begin,350));
+setTimeout(begin,5000);
+
+function introCues(t){
+  const once=(k,at,fn)=>{if(!flags[k]&&t>=at){flags[k]=1;fn()}};
+  once('swell',.25,()=>SFX.swell(2.8));
+  once('hinge',3.1,()=>SFX.hinge(1.4));
+  once('boot',4.3,()=>SFX.boot());
+  once('title',5.0,()=>{void itTitle.offsetWidth;itTitle.classList.add('show');SFX.titleHits(8,5)});
+  once('sub',6.3,()=>{stage.classList.add('show-sub');SFX.chimeTag()});
+  once('exit',7.6,()=>{
+    overlay.classList.remove('is-playing');overlay.classList.add('is-leaving');overlay.setAttribute('aria-hidden','true');
+    document.body.classList.remove('intro-active');document.body.classList.add('intro-reveal');
+    introOn=false;                       /* hand-off: page picks up the pose, particles and sound */
+    SFX.riser(1.5);SFX.heroIn(5);
+    restartIntro.h=setTimeout(()=>overlay.classList.add('is-hidden'),1700);
+  });
+}
+
+/* ===================== MAIN LOOP ===================== */
+let sy=0,lastSy=0,vel=0,vs=0,lastNow=performance.now(),frameN=0;
+let capIdx=-1,typed=false,typeT0=-1,lastThunkOK=true;
+function tick(now){
+  requestAnimationFrame(tick);
+  const dt=Math.min(.05,(now-lastNow)/1000);lastNow=now;frameN++;
+  const time=now/1000;
+  sy=scrollY;vel+=((sy-lastSy)-vel)*.12;lastSy=sy;
+  vs+=(clamp(Math.abs(vel)/45)-vs)*.1;warp*=.972;if(warp<.3)warp=0;
+  mx+=(tx-mx)*.06;my+=(ty-my)*.06;
+  const narrow=innerWidth/innerHeight<1.1;
+
+  /* ---- story / cta progress ---- */
+  const sp=secProg(storySec);
+  const cr=ctaSec.getBoundingClientRect(),ctaIn=clamp((innerHeight-cr.top)/(innerHeight*.9));
+
+  /* ---- pose ---- */
+  let t=0,nS=0;
+  if(introOn){
+    t=live?(now-iStart)/1000:0;
+    if(live)introCues(t);
+    Object.assign(cur,introPose(t));
+    scr=clamp((t-4.2)/.7);lightK=lerp(.35,1,ease(clamp((t-.3)/3)));
+  }else{
+    const sPose=storyPose(sp);
+    const cPose={y:time*.35,x:.15,lid:1.85,d:8.4,px:0,py:-1.9};
+    const fr=finishSec.getBoundingClientRect();
+    const fv=ease(clamp((innerHeight-fr.top)/(innerHeight*.8)))*ease(clamp(fr.bottom/(innerHeight*.8)));
+    const fPose={y:.2+secProg(finishSec)*3,x:.28,lid:1.7,d:7.8,px:1.3,py:-.35};
+    finishUI.style.opacity=fv;
+    const f=ease(ctaIn),tgt={};
+    nS=narrow?1.6*Math.max(ease(clamp(sp/.08)),fv)*(1-f):0;
+    for(const k of ['y','x','lid','d','px','py'])tgt[k]=lerp(lerp(sPose[k],fPose[k],fv),cPose[k],f);
+    for(const k in tgt)cur[k]+=(tgt[k]-cur[k])*.08;
+    scr+=(1-scr)*.1;lightK+=(1-lightK)*.1;
+  }
+
+  /* lid closes on the order section */
+  if(!introOn){
+    const want=ctaIn>.78?0:1;
+    if(want!==lidT){lidT=want;if(isLive())SFX.hinge(lidT?1.0:1.2);thunked=false}
+    lidK+=(lidT-lidK)*.045;
+    if(lidT===0&&!thunked&&lidK<.05){thunked=true;SFX.thunk()}
+  }
+
+  /* ---- apply to scene ---- */
+  const fit=narrow?clamp(.78/(innerWidth/innerHeight),1,2):1;
+  const d=cur.d*fit;
+  L.rotation.y=cur.y+mx*.22+Math.sin(time*.45)*.05;
+  L.rotation.x=cur.x+my*.08;
+  L.position.set(narrow?0:cur.px,cur.py+nS+Math.sin(time*.9)*.04,0);
+  lid.rotation.x=-cur.lid*lidK;
+  cam.position.set(0,1+d*.04,d);cam.lookAt(0,.45,0);
+  ambL.intensity=.4*lightK;keyL.intensity=.95*lightK;rimL.intensity=.8*lightK;rim2L.intensity=.5*lightK;
+  scrMat.color.setScalar(scr);scrLight.intensity=1.7*scr;
+  halo.material.opacity=.55*scr*lightK*lidK;
+  rimL.position.x=-5+Math.sin(time*.3)*2.5;
+  [alu,alu2,aluDark,keys.material,space.material,tp.material,deck.material].forEach(m=>m.envMapIntensity=lightK);
+  if(scr>.02&&frameN%2===0)drawScreen(time);
+
+  /* ---- captions ---- */
+  let idx=-1;
+  WIN.forEach((w,i)=>{
+    const o=clamp(Math.min((sp-w[0])/.035,(w[1]-sp)/.035));
+    caps[i].style.opacity=o;
+    caps[i].style.transform=narrow?`translateY(${(1-o)*24}px)`:`translateY(calc(-50% + ${(1-o)*24}px))`;
+    if(o>.5)idx=i;
+  });
+  stepsBox.style.opacity=sp>.05&&sp<.99?1:0;
+  stepEls.forEach((s,i)=>s.classList.toggle('on',i===idx));
+  if(idx!==capIdx){capIdx=idx;if(idx>=0&&isLive())SFX.cap(idx)}
+  if(idx===1&&!typed&&isLive()){typed=true;typeT0=time;SFX.typeBurst(16,1.1)}
+  if(idx!==1&&(sp<.33||sp>.6))typed=false;
+
+  /* ---- keyboard glow (idle shimmer + a ripple when the keyboard caption lands) ---- */
+  const kb=clamp(lidK)*scr;
+  keyGlow.material.opacity=.16*kb;
+  alu.color.lerp(finA,.08);alu2.color.lerp(finB,.08);
+  let kmDirty=false;
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const i=r*COLS+c,age=time-keyHit[i];
+    let b=.3+.12*Math.sin(time*.8+c*.35+r*.5);
+    if(typeT0>0){const wave=(time-typeT0)*14,dd=c+r*.6-wave;b+=Math.exp(-dd*dd*.14)*.9}
+    if(age>=0&&age<2)b+=Math.exp(-age*5)*1.4;
+    const press=age>=0&&age<.28?Math.sin(age/.28*Math.PI):0;
+    if(press>0||keyDown[i]){
+      const x=-1.435+.1025+c*PITCH,z=-.85+r*PITCH;
+      m4.makeTranslation(x,KY-.014*press,z);keys.setMatrixAt(i,m4);
+      m4.makeTranslation(x,KY+.0195-.014*press,z);legs.setMatrixAt(i,m4);
+      keyDown[i]=press>0?1:0;kmDirty=true;
+    }
+    const m=clamp(c/(COLS-1)),k=b*kb;
+    legs.setColorAt(i,col.setRGB(k,lerp(.78,.9,m)*k,lerp(.5,.74,m)*k));
+  }
+  if(kmDirty){keys.instanceMatrix.needsUpdate=true;legs.instanceMatrix.needsUpdate=true}
+  if(legs.instanceColor)legs.instanceColor.needsUpdate=true;
+  const vg=.4+(idx===2?.55+.3*Math.sin(time*6):0);
+  ventMat.color.setRGB(vg,.55*vg,.3*vg);
+
+
+
+  prog.style.width=(sy/(document.body.scrollHeight-innerHeight)*100)+'%';
+  R.render(scene,cam);
+
+  /* ---- scroll-driven sound ---- */
+  if(isLive())SFX.scroll(clamp(vs),sp);
+  else if(live&&introOn){
+    /* intro: near silence until the machine boots, then the fan comes in */
+    const on=t>4.5?1:0;
+    SFX.drive({fan:.004+.02*on,fanF:600+700*on,tone:.004*on,toneF:90,whine:0});
+  }
+}
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
